@@ -1,0 +1,43 @@
+# Audit Configuration v2.0
+version: "2.0"
+
+scoring:
+  # Base score to subtract from
+  base_score: 100
+  
+  # Max score allowed if a CRITICAL violation is found
+  critical_cap: 40
+  high_cap: 60
+
+  weights:
+    security: 2.0
+    architecture: 1.5
+    resilience: 1.5
+    mlops: 1.0
+    scalability: 0.5
+    observability: 0.5
+
+  penalties:
+    hardcoded_secret: 25
+    circular_dependency: 15
+    direct_llm_call: 10
+    missing_retry: 10
+    no_timeout: 5
+    god_mode_file: 5
+    broad_exception: 5
+
+thresholds:
+  god_mode:
+    loc: 800
+    fan_in: 20
+    fan_out: 15
+  
+  context:
+    max_tokens: 120000
+    chunk_size: 4000
+
+llm:
+  model: "llama3.2:3b-instruct-q4_0"    # Default OLLAMA model
+  api_base: "http://localhost:11434"
+  timeout: 120
+  section_timeout: 30    # Per-section timeout (seconds) for the new section-by-section strategy
