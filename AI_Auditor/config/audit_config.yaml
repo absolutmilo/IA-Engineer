@@ -39,5 +39,5 @@ thresholds:
 llm:
   model: "llama3.2:3b-instruct-q4_0"    # Default OLLAMA model
   api_base: "http://localhost:11434"
-  timeout: 120
-  section_timeout: 30    # Per-section timeout (seconds) for the new section-by-section strategy
+  timeout: 1200
+  section_timeout: 120    # Per-section timeout (seconds) for the new section-by-section strategy

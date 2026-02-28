@@ -194,15 +194,14 @@ def main():
     llm_cfg = config.get("llm", {})
     model = llm_cfg.get("model", "llama3.2:3b-instruct-q4_0")
     api_base = llm_cfg.get("api_base", "http://localhost:11434")
-    section_timeout = llm_cfg.get("section_timeout", 30)
+    section_timeout = llm_cfg.get("section_timeout", 120)
     
     logger.info(f"Initializing LLM client")
     logger.info(f"  Model: {model}")
     logger.info(f"  API Base: {api_base}")
     logger.info(f"  Section timeout: {section_timeout}s")
     
-    console.print(
-        f"\n[bold purple][*] Consulting Principal Architect (LLM: {model})...[/bold purple]\n"
+    console.print(        f"\n[bold purple][*] Consulting Principal Architect (LLM: {model})...[/bold purple]\n"
     )
     
     try:

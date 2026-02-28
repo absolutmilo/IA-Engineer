@@ -28,7 +28,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from .structure import AuditReport, SectionAudit
 from .prompts import SECTION_PROMPTS
-from utils.logger import get_logger
+from utils.logger import get_logger, log_event
 
 console = Console()
 logger = get_logger("llm_client")
@@ -88,7 +88,7 @@ VERDICT_TO_SCORE = {
 class LLMClient:
     def __init__(self, model: str = "llama3.2:3b-instruct-q4_0",
                  api_base: str = "http://localhost:11434",
-                 section_timeout: int = 30):
+                 section_timeout: int = 120):
         self.model = model
         self.section_timeout = section_timeout
         self.api_base = api_base
@@ -124,6 +124,85 @@ class LLMClient:
 
     # ─── Thread-enforced timeout ───────────────────────────────────────────
 
+    @staticmethod
+    def _cap_text(text: str, max_chars: int) -> str:
+        if len(text) <= max_chars:
+            return text
+        return text[:max_chars]
+
+    def _build_section_summary(self, section_key: str, context_summary: Dict[str, Any]) -> Dict[str, Any]:
+        """Build a smaller, section-focused summary for local models."""
+        base: Dict[str, Any] = {
+            "project_name": context_summary.get("project_name"),
+            "total_python_files": context_summary.get("total_python_files"),
+            "total_loc": context_summary.get("total_loc"),
+            "project_flags": context_summary.get("project_flags", {}),
+            "code_quality": context_summary.get("code_quality", {}),
+            "ai_ml_profile": context_summary.get("ai_ml_profile", {}),
+        }
+
+        files = context_summary.get("files", []) or []
+
+        # Choose how many file entries to include depending on the section.
+        # Keep it conservative for local models.
+        per_section_file_caps = {
+            "architecture": 8,
+            "llm_integration": 5,
+            "prompt_engineering": 5,
+            "cost_performance": 5,
+            "rag_data_pipeline": 6,
+            "mlops_deployment": 5,
+            "observability": 5,
+            "failure_resilience": 5,
+            "security": 5,
+            "scalability": 5,
+            "technical_debt": 6,
+            "final_verdict": 10,
+        }
+        cap = per_section_file_caps.get(section_key, 20)
+
+        # Always take highest-LOC first; ContextBuilder already sorts by LOC desc.
+        base["files"] = files[:cap]
+
+        # Extra focus per section (adds small hints, not full data dumps)
+        if section_key in ("architecture", "scalability"):
+            cq = base.get("code_quality", {})
+            base["focus"] = (
+                f"God-mode files: {len(cq.get('god_mode_files', []))}. "
+                f"Circular deps: {len(cq.get('circular_dependency_examples', []))}."
+            )
+        elif section_key in ("mlops_deployment", "security"):
+            cq = base.get("code_quality", {})
+            base["focus"] = (
+                f"Hardcoded paths: {len(cq.get('sample_hardcoded_paths', []))}. "
+                f"Secrets: {cq.get('total_hardcoded_secrets', 0)}."
+            )
+        elif section_key in ("observability", "failure_resilience"):
+            cq = base.get("code_quality", {})
+            base["focus"] = (
+                f"Logging files: {cq.get('files_using_logging', 0)}. "
+                f"Retry files: {cq.get('files_with_retry', 0)}. "
+                f"Timeout files: {cq.get('files_with_timeout', 0)}. "
+                f"Broad excepts: {cq.get('total_broad_excepts', 0)}."
+            )
+        elif section_key in ("llm_integration", "prompt_engineering"):
+            ai = base.get("ai_ml_profile", {})
+            libs = ai.get("llm_libraries", [])
+            base["focus"] = (
+                f"LLM libs: {libs}. "
+                f"Direct LLM calls files: {len(ai.get('files_with_direct_llm_calls', []))}. "
+                f"Prompt strings: {ai.get('total_prompt_strings_detected', 0)}."
+            )
+
+        return base
+
+    def _build_section_summary_json(self, section_key: str, context_summary: Dict[str, Any]) -> str:
+        # Budget in characters (proxy for tokens). Tuned for small local models.
+        max_chars = 3000 if section_key != "final_verdict" else 5000
+        data = self._build_section_summary(section_key, context_summary)
+        s = json.dumps(data, indent=2)
+        return self._cap_text(s, max_chars)
+
     def _call_section_with_timeout(self, section_key: str, summary_json: str) -> str:
         """
         Calls the LLM with a hard timeout enforced by threading.
@@ -140,6 +219,14 @@ class LLMClient:
         logger.debug(f"[SECTION] Prompt for '{section_key}':")
         logger.debug(f"  Prompt length: {len(prompt)} characters")
         logger.debug(f"  First 300 chars: {prompt[:300]}...")
+
+        log_event(
+            logger,
+            "llm_section_prompt_built",
+            section_key=section_key,
+            summary_chars=len(summary_json),
+            prompt_chars=len(prompt),
+        )
         
         result_queue: Queue = Queue()
         thread_id = threading.current_thread().ident
@@ -316,12 +403,19 @@ class LLMClient:
         logger.info("STARTING FULL AUDIT ANALYSIS (12 SECTIONS)")
         logger.info("=" * 70)
         
-        summary_json = json.dumps(context_summary, indent=2)
         project_name = context_summary.get("project_name", "Unknown")
         
         logger.info(f"Project: {project_name}")
-        logger.info(f"Context summary size: {len(summary_json)} bytes")
-        logger.debug(f"Context summary (first 500 chars):\n{summary_json[:500]}")
+        full_summary_json = json.dumps(context_summary, indent=2)
+        logger.info(f"Context summary size: {len(full_summary_json)} bytes")
+        logger.debug(f"Context summary (first 500 chars):\n{full_summary_json[:500]}")
+
+        log_event(
+            logger,
+            "context_summary_ready",
+            project_name=project_name,
+            summary_chars=len(full_summary_json),
+        )
         
         report = AuditReport(project_name=project_name)
 
@@ -349,9 +443,18 @@ class LLMClient:
             logger.info(f"[{idx}/12] Processing: {section_key}")
             console.print(f"  [bold cyan]{display}[/bold cyan]...", end=" ")
 
-            raw = self._call_section(section_key, summary_json)
+            section_summary_json = self._build_section_summary_json(section_key, context_summary)
+            raw = self._call_section(section_key, section_summary_json)
             section_elapsed = time.time() - section_start
             logger.info(f"[{idx}/12] Section '{section_key}' completed in {section_elapsed:.1f}s (response: {len(raw)} bytes)")
+
+            log_event(
+                logger,
+                "llm_section_completed",
+                section_key=section_key,
+                elapsed_s=round(section_elapsed, 3),
+                response_chars=len(raw),
+            )
 
             if section_key == "final_verdict":
                 logger.debug("Parsing final verdict...")

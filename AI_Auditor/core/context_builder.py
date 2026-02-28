@@ -104,6 +104,33 @@ class ContextBuilder:
         # Sort by LOC descending for quick human/LLM comprehension
         files_summary.sort(key=lambda x: x["loc"], reverse=True)
 
+        # ── Derived capped views (for prompt building) ─────────────────────
+        top_by_complexity = sorted(
+            files_summary,
+            key=lambda x: x.get("cyclomatic_complexity", 0),
+            reverse=True,
+        )[:10]
+        top_by_fan_in = sorted(
+            files_summary,
+            key=lambda x: x.get("fan_in", 0),
+            reverse=True,
+        )[:10]
+        top_by_fan_out = sorted(
+            files_summary,
+            key=lambda x: x.get("fan_out", 0),
+            reverse=True,
+        )[:10]
+
+        risk_signals = {
+            "files_with_secrets": len([f for f in files_summary if f.get("secrets", 0) > 0]),
+            "files_with_subprocess": len([f for f in files_summary if f.get("subprocess")]),
+            "files_with_hardcoded_paths": len([f for f in files_summary if f.get("hardcoded_path")]),
+            "files_with_direct_llm_calls": len([f for f in files_summary if f.get("direct_llm_calls", 0) > 0]),
+            "top_complexity_files": [{"module": f["module"], "cyclomatic_complexity": f.get("cyclomatic_complexity", 0), "loc": f.get("loc", 0)} for f in top_by_complexity[:3]],
+            "top_fan_in_files": [{"module": f["module"], "fan_in": f.get("fan_in", 0), "loc": f.get("loc", 0)} for f in top_by_fan_in[:3]],
+            "top_fan_out_files": [{"module": f["module"], "fan_out": f.get("fan_out", 0), "loc": f.get("loc", 0)} for f in top_by_fan_out[:3]],
+        }
+
         # ── AI/ML profile ─────────────────────────────────────────────────
         ai_profile = build_ai_profile(self.file_stats)
 
@@ -140,6 +167,7 @@ class ContextBuilder:
                 "god_mode_files": god_mode_files,
                 "circular_dependencies": len(self.cycles),
                 "circular_dependency_examples": cycles_summary,
+                "risk_signals": risk_signals,
             },
             "ai_ml_profile": {
                 "uses_llm": ai_profile["uses_llm"],

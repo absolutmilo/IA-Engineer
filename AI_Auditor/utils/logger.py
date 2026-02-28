@@ -23,6 +23,12 @@ class JSONFormatter(logging.Formatter):
     """Formats log records as JSON lines."""
     
     def format(self, record: logging.LogRecord) -> str:
+        reserved = {
+            "name", "msg", "args", "levelname", "levelno", "pathname", "filename",
+            "module", "exc_info", "exc_text", "stack_info", "lineno", "funcName",
+            "created", "msecs", "relativeCreated", "thread", "threadName",
+            "processName", "process", "message",
+        }
         log_data = {
             "timestamp": datetime.fromtimestamp(record.created).isoformat(),
             "level": record.levelname,
@@ -34,6 +40,13 @@ class JSONFormatter(logging.Formatter):
             "thread": record.thread,
             "thread_name": record.threadName,
         }
+
+        extra_fields = {
+            k: v for k, v in record.__dict__.items()
+            if k not in reserved and not k.startswith("_")
+        }
+        if extra_fields:
+            log_data["extra"] = extra_fields
         
         # Add exception info if present
         if record.exc_info:
@@ -115,3 +128,19 @@ def setup_logging(verbose: bool = False) -> logging.Logger:
 def get_logger(name: str) -> logging.Logger:
     """Get a logger instance for a specific module."""
     return logging.getLogger(f"AI_Auditor.{name}")
+
+
+def log_event(
+    logger: logging.Logger,
+    event: str,
+    level: int = logging.INFO,
+    correlation_id: Optional[str] = None,
+    **payload: object,
+) -> None:
+    extra: dict = {
+        "audit_event": event,
+        "audit_payload": payload,
+    }
+    if correlation_id:
+        extra["correlation_id"] = correlation_id
+    logger.log(level, event, extra=extra)
