@@ -125,7 +125,7 @@ Esto activa:
 
 ### Fallo y Recuperación
 ```
-2026-02-20 10:16:05 ERROR    [SECTION] 'llm_integration' TIMEOUT after 30s
+2026-02-20 10:16:05 ERROR    [SECTION] 'llm_integration' TIMEOUT after 120s
 2026-02-20 10:16:05 WARNING  [SECTION] Worker thread still running; will be terminated as daemon
 2026-02-20 10:16:05 DEBUG    [SECTION] Using fallback response for section
 ```
