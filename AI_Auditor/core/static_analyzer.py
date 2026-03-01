@@ -83,7 +83,7 @@ class StaticAnalyzer(ast.NodeVisitor):
             self.visit(tree)
 
         except Exception as e:
-            print(f"Error analyzing {self.file_path.name}: {e}")
+            logger.exception(f"Error analyzing {self.file_path.name}")
 
         return self.stats
 

@@ -1,5 +1,5 @@
 import argparse
-import sys
+import sys, os  
 import time
 from pathlib import Path
 from rich.console import Console
@@ -10,6 +10,7 @@ import yaml
 from core.static_analyzer import StaticAnalyzer, FileStats
 from core.dependency_graph import DependencyGraph
 from core.context_builder import ContextBuilder
+from core.audit_analyzer import AuditAnalyzer
 
 # LLM
 from llm.llm_client import LLMClient
@@ -17,13 +18,51 @@ from llm.structure import AuditReport
 from utils.reporter import Reporter
 from utils.logger import setup_logging, get_logger
 
+# Define base directory for the project
+BASE_DIR = Path(__file__).parent
+
 console = Console()
 logger = None  # Will be initialized in main()
 
 
-def load_config(path: str = "config/audit_config.yaml") -> dict:
-    with open(path, "r") as f:
-        return yaml.safe_load(f)
+def load_config(
+    path: str = os.getenv("AUDIT_CONFIG_PATH", "config/audit_config.yaml")
+) -> dict:
+    """Load configuration from YAML file with fallback to defaults."""
+    config_path = (BASE_DIR / path).resolve()
+    
+    # Default configuration
+    default_config = {
+        "llm": {
+            "model": "llama3.2:3b-instruct-q4_0",
+            "api_base": "http://localhost:11434",
+            "section_timeout": 120
+        },
+        "analysis": {
+            "max_file_size_mb": 10,
+            "exclude_patterns": [".venv", "__pycache__", ".git"],
+            "include_tests": False
+        },
+        "output": {
+            "format": "json",
+            "save_intermediate": True
+        }
+    }
+    
+    try:
+        if config_path.exists():
+            with config_path.open("r") as f:
+                loaded_config = yaml.safe_load(f) or {}
+                # Merge with defaults
+                return {**default_config, **loaded_config}
+        else:
+            print(f"⚠️  Config file not found: {config_path}")
+            print("📝 Using default configuration")
+            return default_config
+    except Exception as e:
+        print(f"❌ Failed to load config: {e}")
+        print("📝 Using default configuration")
+        return default_config
 
 
 def render_scorecard(report: AuditReport, context_summary: dict) -> None:
@@ -74,7 +113,6 @@ def render_scorecard(report: AuditReport, context_summary: dict) -> None:
             console.print(f"  {i}. {item}")
         console.print()
 
-
 def main():
     global logger
     
@@ -109,13 +147,48 @@ def main():
     logger.debug("Loading configuration...")
     base_dir = Path(__file__).parent
     try:
-        config = load_config(str(base_dir / "config/audit_config.yaml"))
+        config = load_config()
         logger.info(f"Configuration loaded successfully")
         logger.debug(f"LLM model: {config.get('llm', {}).get('model')}")
         logger.debug(f"LLM timeout per section: {config.get('llm', {}).get('section_timeout')}s")
     except Exception as e:
         logger.error(f"Failed to load configuration: {e}", exc_info=True)
         raise
+
+    # ── Enhanced Audit Analysis ────────────────────────────────────────────
+    logger.info("Starting enhanced code analysis...")
+    console.print("[blue][*] Running Enhanced Code Analysis...[/blue]")
+    try:
+        enhanced_analyzer = AuditAnalyzer(str(target_path))
+        logger.debug("Enhanced audit analyzer initialized")
+        
+        enhanced_results = enhanced_analyzer.run_full_analysis()
+        logger.info("Enhanced audit analysis completed")
+        
+        # Create output directory for enhanced findings
+        enhanced_output_dir = target_path / "audit_reports" / "enhanced_findings"
+        enhanced_output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Export enhanced findings
+        enhanced_analyzer.export_findings(str(enhanced_output_dir))
+        logger.info(f"Enhanced findings exported to: {enhanced_output_dir}")
+        
+        # Display summary
+        total_findings = sum(len(findings) for findings in enhanced_results.values())
+        console.print(f"   [yellow]📊 Enhanced Analysis: {total_findings} findings detected[/yellow]")
+        
+        # Show critical findings count
+        critical_count = len(enhanced_analyzer.tracker.get_by_severity(enhanced_analyzer.tracker.Severity.CRITICAL))
+        if critical_count > 0:
+            console.print(f"   [red]🚨 {critical_count} critical issues found[/red]")
+        else:
+            console.print("   [green]✅ No critical issues found[/green]")
+            
+    except Exception as e:
+        logger.error(f"Enhanced audit analysis failed: {e}", exc_info=True)
+        console.print(f"   [yellow]⚠ Enhanced analysis failed: {e}[/yellow]")
+        # Don't raise - continue with main audit
+
 
     # ── Dependency Graph ───────────────────────────────────────────────────
     logger.info("Starting dependency graph analysis...")

@@ -48,11 +48,12 @@ class DependencyGraph:
                 return sub
         return None
 
-    def detect_cycles(self) -> List[List[str]]:
-        try:
-            return list(nx.simple_cycles(self.graph))
-        except:
-            return []
+def detect_cycles(self) -> List[List[str]]:
+    try:
+        return list(nx.simple_cycles(self.graph))
+    except nx.NetworkXException:
+        logger.exception("Unexpected failure during cycle detection")
+        raise
 
     def get_coupling_metrics(self) -> Dict[str, Dict[str, int]]:
         metrics = {}

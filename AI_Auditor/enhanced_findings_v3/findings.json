@@ -21,7 +21,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -46,7 +46,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -71,7 +71,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -96,7 +96,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -121,7 +121,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -146,7 +146,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -171,7 +171,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -196,7 +196,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -221,7 +221,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -246,7 +246,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -271,7 +271,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -296,7 +296,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -321,7 +321,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -346,7 +346,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -371,7 +371,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -396,7 +396,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -421,7 +421,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -446,7 +446,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -471,7 +471,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -496,7 +496,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -522,7 +522,7 @@
         "path"
       ],
       "false_positive": false,
-      "resolved": false,
+      "resolved": true,
       "resolution_notes": ""
     },
     {
@@ -546,7 +546,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -571,7 +571,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -596,7 +596,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -621,7 +621,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -646,7 +646,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -671,7 +671,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -696,7 +696,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -721,7 +721,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -746,7 +746,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -772,8 +772,8 @@
         "path"
       ],
       "false_positive": false,
-      "resolved": false,
-      "resolution_notes": ""
+      "resolved": true,
+      "resolution_notes": "Path is now loaded from config file"
     },
     {
       "id": "FIND-0032",
@@ -796,7 +796,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -821,7 +821,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -846,7 +846,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -871,7 +871,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -896,7 +896,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -921,7 +921,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -946,7 +946,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -971,7 +971,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -996,7 +996,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1021,7 +1021,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1046,7 +1046,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1071,7 +1071,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1096,7 +1096,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1121,7 +1121,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1146,7 +1146,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1171,7 +1171,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1196,7 +1196,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1221,7 +1221,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1246,7 +1246,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1271,7 +1271,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1296,7 +1296,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1321,7 +1321,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1346,7 +1346,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1371,7 +1371,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1396,7 +1396,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1421,7 +1421,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1446,7 +1446,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1471,7 +1471,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1496,7 +1496,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1521,7 +1521,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1546,7 +1546,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1571,7 +1571,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1596,7 +1596,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1621,7 +1621,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1646,7 +1646,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1671,7 +1671,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1696,7 +1696,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1721,7 +1721,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1746,7 +1746,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1771,7 +1771,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1796,7 +1796,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1821,7 +1821,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1846,7 +1846,7 @@
         "configuration",
         "path"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1870,7 +1870,7 @@
         "logging",
         "production"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1894,7 +1894,7 @@
         "logging",
         "production"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1918,7 +1918,7 @@
         "logging",
         "production"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1942,7 +1942,7 @@
         "logging",
         "production"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1966,7 +1966,7 @@
         "logging",
         "production"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
@@ -1991,8 +1991,8 @@
         "production"
       ],
       "false_positive": false,
-      "resolved": false,
-      "resolution_notes": ""
+      "resolved": true,
+      "resolution_notes": "Replaced print() with logger.exception()"
     },
     {
       "id": "FIND-0081",
@@ -2014,7 +2014,7 @@
         "error-handling",
         "reliability"
       ],
-      "false_positive": false,
+      "false_positive": true,
       "resolved": false,
       "resolution_notes": ""
     },
