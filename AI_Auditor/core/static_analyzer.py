@@ -1,9 +1,17 @@
+"""
+Static Analysis - Core code analysis functionality
+"""
+
 import ast
+import os
 import re
 from pathlib import Path
-from typing import List, Dict, Set, Any
-from pydantic import BaseModel
+from typing import Dict, List, Any, Optional, Set
+from collections import defaultdict
 
+from .findings_tracker import FindingsTracker, Severity, Category, FindingLocation
+from .dependency_graph import DependencyGraph
+from utils.logger import get_logger
 
 class FileStats(BaseModel):
     loc: int = 0
@@ -30,6 +38,7 @@ class StaticAnalyzer(ast.NodeVisitor):
         self.file_path = file_path
         self.stats = FileStats()
         self.source_code = ""
+        self.logger = get_logger(__name__)
 
         self._secret_patterns = [
             re.compile(r"(?i)(api_key|secret|token|password)\s*=\s*['\"](?!os\.|env\.)[a-zA-Z0-9_\-\.]{20,}['\"]"),
@@ -83,7 +92,7 @@ class StaticAnalyzer(ast.NodeVisitor):
             self.visit(tree)
 
         except Exception as e:
-            logger.exception(f"Error analyzing {self.file_path.name}")
+            self.logger.exception(f"Error analyzing {self.file_path.name}")
 
         return self.stats
 

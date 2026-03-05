@@ -1,0 +1,143 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-auditor"
+version = "1.0.0"
+description = "AI Engineering Guardian - MCP-compliant code analysis and audit tools"
+authors = [
+    {name = "AI Auditor Team", email = "team@ai-auditor.dev"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Systems Administration",
+    "Intended Audience :: Information Technology",
+]
+
+dependencies = [
+    "pydantic>=2.0",
+    "rich>=13.0",
+    "networkx>=3.0",
+    "radon>=6.0",
+    "ollama>=0.1.0",
+    "pyyaml>=6.0",
+    "tenacity>=8.0",
+    "requests>=2.25.0",
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "mypy>=1.0",
+    "pre-commit>=3.0",
+    "flake8>=6.0",
+    "isort>=5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ai-auditor/ai-auditor"
+Repository = "https://github.com/ai-auditor/ai-auditor.git"
+Issues = "https://github.com/ai-auditor/ai-auditor/issues"
+Documentation = "https://github.com/ai-auditor/ai-auditor/docs"
+
+[project.scripts]
+ai-auditor = "main:main"
+mcp-audit = "mcp_structure_audit:main"
+enhanced-audit = "enhanced_audit:main"
+dependency-audit = "dependency_audit:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+data_files = ["config/*", "docs/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["tests/**/*.py"]
+python_classes = ["tests/*"]
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.egs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["src"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+warn_no_return_any = true
+warn_unreachable_any = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true

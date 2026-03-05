@@ -1,0 +1,23 @@
+{
+  "total_findings": 0,
+  "unresolved": 0,
+  "resolved": 0,
+  "false_positives": 0,
+  "by_severity": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "info": 0
+  },
+  "by_category": {
+    "architecture": 0,
+    "security": 0,
+    "performance": 0,
+    "maintainability": 0,
+    "reliability": 0,
+    "configuration": 0,
+    "logging": 0,
+    "testing": 0
+  }
+}

@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 
 from .findings_tracker import FindingsTracker, Severity, Category, FindingLocation
+from .dependency_analyzer import DependencyAnalyzer
+from .mcp_structure_validator import MCPStructureValidator
 
 class AuditAnalyzer:
     def __init__(self, project_path: str):
@@ -28,10 +30,10 @@ class AuditAnalyzer:
         """Find hardcoded absolute paths that prevent deployment"""
         finding_ids = []
         
-        # Pattern for Windows absolute paths
-        windows_pattern = r'[A-Z]:\\[^"\'\s\\]+'
-        # Pattern for Unix absolute paths (minimum 3 characters to avoid false positives)
-        unix_pattern = r'/[^"\'\s\\]{3,}'
+        # Pattern for Windows absolute paths (more precise - must start with drive letter)
+        windows_pattern = r'[A-Z]:\\[^"\'\s\\][^"\'\s\\]*'
+        # Pattern for Unix absolute paths (must start with / and contain path separators)
+        unix_pattern = r'/[a-zA-Z0-9_\-\.]+(/[a-zA-Z0-9_\-\.]+)+'
         
         for file_path in self.python_files:
             try:
@@ -86,16 +88,79 @@ class AuditAnalyzer:
                     for match in list(windows_matches) + list(unix_matches):
                         path = match.group()
                         
-                        # Skip common non-problematic paths
+                        # Skip common non-problematic paths (expanded list)
                         if any(skip in path.lower() for skip in [
+                            # System paths
                             'python', 'program files', 'windows', 'usr/bin', 
-                            'usr/local/bin', '/bin/', '/sbin/', '/opt/'
+                            'usr/local/bin', '/bin/', '/sbin/', '/opt/',
+                            # Development paths
+                            'site-packages', 'node_modules', '.venv', '__pycache__',
+                            # Common directories
+                            'appdata', 'temp', 'tmp', 'users', 'home',
+                            # Version control
+                            '.git', '.svn', '.hg',
+                            # Build/CI paths
+                            'build', 'dist', 'target', 'out',
+                            # IDE paths
+                            '.vscode', '.idea', 'eclipse',
+                            # Common patterns
+                            'c:\\users\\', '/home/', '/var/', '/etc/'
                         ]):
                             continue
                         
                         # Skip if it's in a comment (check if # appears before the path)
                         comment_pos = line.find('#')
                         if comment_pos != -1 and match.start() > comment_pos:
+                            continue
+                        
+                        # Skip if it's in a string that's clearly not a path
+                        # Check for common string patterns that aren't paths
+                        line_stripped = line.strip()
+                        if any(pattern in line_stripped.lower() for pattern in [
+                            # URLs and web patterns
+                            'http://', 'https://', 'ftp://', 'file://',
+                            'www.', '.com', '.org', '.net',
+                            # Documentation patterns
+                            'example', 'test', 'demo', 'sample',
+                            'TODO:', 'FIXME:', 'NOTE:', 'XXX:',
+                            # Rich console formatting tags (major source of false positives)
+                            '[bold]', '[/bold]', '[red]', '[/red]', '[green]', '[/green]',
+                            '[blue]', '[/blue]', '[yellow]', '[/yellow]', '[cyan]', '[/cyan]',
+                            '[magenta]', '[/magenta]', '[white]', '[/white]',
+                            '[dim]', '[/dim]', '[bright]', '[/bright]',
+                            # Console formatting patterns
+                            '[bold red]', '[/bold red]', '[bold green]', '[/bold green]',
+                            '[bold blue]', '[/bold blue]', '[bold yellow]', '[/bold yellow]',
+                            '[orange1]', '[/orange1]', '[bright_green]', '[/bright_green]',
+                            # Other common formatting
+                            '[/]', '[*]', '[+]', '[-]', '[✓]', '[❌]', '[⚠️]', '[🚨]',
+                            # ANSI escape sequences
+                            '\x1b[', '\033[', '\\033[', '\\x1b['
+                        ]):
+                            continue
+                        
+                        # Skip Rich console formatting patterns specifically
+                        if re.search(r'\[\/?[a-zA-Z0-9_\-\s]+\]', line_stripped):
+                            continue
+                        
+                        # Skip if it's a path-like pattern that's actually something else
+                        # Check for common non-path patterns
+                        if any(path.startswith(pattern) for pattern in [
+                            'C:\\', 'D:\\', 'E:\\', 'F:\\', 'G:\\', 'H:\\',
+                            '/tmp/', '/var/', '/etc/', '/usr/', '/opt/',
+                            '/dev/', '/proc/', '/sys/', '/home/'
+                        ]) and any(keyword in line_stripped for keyword in [
+                            'example', 'test', 'sample', 'demo', 'placeholder',
+                            'your_path', 'path_to', 'folder', 'directory'
+                        ]):
+                            continue
+                        
+                        # Additional context check - skip if line looks like documentation
+                        if any(doc_pattern in line_stripped for doc_pattern in [
+                            '#', '//', '"""', "'''", '"""', "'''",
+                            'example:', 'e.g.', 'for example:',
+                            'usage:', 'note:', 'see:'
+                        ]):
                             continue
                         
                         # Get code context
@@ -121,7 +186,7 @@ class AuditAnalyzer:
                         finding_ids.append(finding_id)
                         
             except Exception as e:
-                print(f"Error analyzing {file_path}: {e}")
+                logger.exception(f"Error analyzing {file_path}: {e}")
         
         return finding_ids
     
@@ -190,7 +255,7 @@ class AuditAnalyzer:
                             finding_ids.append(finding_id)
                         
             except Exception as e:
-                print(f"Error analyzing {file_path}: {e}")
+                logger.exception(f"Error analyzing {file_path}: {e}")
         
         return finding_ids
     
@@ -259,7 +324,7 @@ class AuditAnalyzer:
                             finding_ids.append(finding_id)
                             
             except Exception as e:
-                print(f"Error analyzing {file_path}: {e}")
+                logger.exception(f"Error analyzing {file_path}: {e}")
         
         return finding_ids
     
@@ -317,7 +382,84 @@ class AuditAnalyzer:
                         finding_ids.append(finding_id)
                         
             except Exception as e:
-                print(f"Error analyzing {file_path}: {e}")
+                logger.exception(f"Error analyzing {file_path}: {e}")
+        
+        return finding_ids
+    
+    def analyze_dependencies(self) -> List[str]:
+        """Analyze dependencies for unused imports and decomposable libraries"""
+        finding_ids = []
+        
+        try:
+            dep_analyzer = DependencyAnalyzer(str(self.project_path))
+            results = dep_analyzer.analyze_imports_and_usage()
+            
+            # Merge all finding IDs
+            for category, ids in results.items():
+                finding_ids.extend(ids)
+            
+            # Generate and save dependency report
+            dep_report = dep_analyzer.generate_dependency_report()
+            report_path = Path(str(self.project_path)) / "audit_reports" / "dependency_report.json"
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            import json
+            with open(report_path, 'w') as f:
+                json.dump(dep_report, f, indent=2)
+                
+        except Exception as e:
+            logger.error(f"Error analyzing dependencies: {e}")
+        
+        return finding_ids
+    
+    def analyze_mcp_structure(self) -> List[str]:
+        """Analyze MCP project structure compliance"""
+        finding_ids = []
+        
+        try:
+            structure_validator = MCPStructureValidator(str(self.project_path))
+            structure_results = structure_validator.validate_structure()
+            
+            # Generate findings based on structure results
+            score = structure_results.get("overall_score", 0)
+            level = structure_results.get("compliance_level")
+            
+            # Create finding for overall structure compliance
+            if level.value in ["NON_COMPLIANT", "PARTIAL"]:
+                finding_id = self.tracker.add_finding(
+                    title="MCP Project Structure Issues",
+                    description=f"Project has MCP structure compliance level: {level.value} ({score}%)",
+                    severity=Severity.HIGH if level.value == "NON_COMPLIANT" else Severity.MEDIUM,
+                    category=Category.ARCHITECTURE,
+                    recommendation="Reorganize project structure according to MCP standards",
+                    effort_estimate="1-3 hours",
+                    tags=["mcp", "structure", "project-organization", "standards"]
+                )
+                finding_ids.append(finding_id)
+            
+            # Add findings for critical structure issues
+            for req_path, result in structure_results.get("requirement_results", {}).items():
+                if not result.get("compliant", True):
+                    requirement = next((r for r in structure_validator.requirements if r.path == req_path), None)
+                    if requirement and requirement.level == "REQUIRED":
+                        finding_id = self.tracker.add_finding(
+                            title=f"MCP Structure Required: {requirement.description}",
+                            description=f"Missing required MCP structure element: {req_path}",
+                            severity=Severity.HIGH,
+                            category=Category.ARCHITECTURE,
+                            recommendation=f"Create {req_path} for MCP compliance",
+                            effort_estimate="15 minutes",
+                            tags=["mcp", "structure", "required"]
+                        )
+                        finding_ids.append(finding_id)
+            
+            # Export structure report
+            output_dir = Path(str(self.project_path)) / "audit_reports"
+            output_dir.mkdir(parents=True, exist_ok=True)
+            structure_validator.export_structure_report(str(output_dir))
+            
+        except Exception as e:
+            print(f"Error analyzing MCP structure: {e}")
         
         return finding_ids
     
@@ -327,7 +469,9 @@ class AuditAnalyzer:
             "hardcoded_paths": self.analyze_hardcoded_paths(),
             "print_statements": self.analyze_print_statements(),
             "broad_exceptions": self.analyze_broad_exceptions(),
-            "llm_integration": self.analyze_llm_integration()
+            "llm_integration": self.analyze_llm_integration(),
+            "dependencies": self.analyze_dependencies(),
+            "mcp_structure": self.analyze_mcp_structure()
         }
         
         return results

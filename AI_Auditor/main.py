@@ -11,6 +11,7 @@ from core.static_analyzer import StaticAnalyzer, FileStats
 from core.dependency_graph import DependencyGraph
 from core.context_builder import ContextBuilder
 from core.audit_analyzer import AuditAnalyzer
+from core.findings_tracker import Severity
 
 # LLM
 from llm.llm_client import LLMClient
@@ -177,8 +178,31 @@ def main():
         total_findings = sum(len(findings) for findings in enhanced_results.values())
         console.print(f"   [yellow]📊 Enhanced Analysis: {total_findings} findings detected[/yellow]")
         
+        # Show breakdown by category
+        category_counts = {
+            "Hardcoded Paths": len(enhanced_results.get("hardcoded_paths", [])),
+            "Print Statements": len(enhanced_results.get("print_statements", [])),
+            "Broad Exceptions": len(enhanced_results.get("broad_exceptions", [])),
+            "LLM Integration": len(enhanced_results.get("llm_integration", [])),
+            "Dependencies": len(enhanced_results.get("dependencies", [])),
+            "MCP Structure": len(enhanced_results.get("mcp_structure", []))
+        }
+        
+        for category, count in category_counts.items():
+            if count > 0:
+                if category == "Hardcoded Paths":
+                    console.print(f"   [red]🚨 {count} {category}[/red]")
+                elif category == "Dependencies":
+                    console.print(f"   [cyan]📦 {count} {category}[/cyan]")
+                elif category == "LLM Integration":
+                    console.print(f"   [orange1]🔧 {count} {category}[/orange1]")
+                elif category == "MCP Structure":
+                    console.print(f"   [bright_blue]🏗️ {count} {category}[/bright_blue]")
+                else:
+                    console.print(f"   [yellow]⚠️ {count} {category}[/yellow]")
+        
         # Show critical findings count
-        critical_count = len(enhanced_analyzer.tracker.get_by_severity(enhanced_analyzer.tracker.Severity.CRITICAL))
+        critical_count = len(enhanced_analyzer.tracker.get_by_severity(Severity.CRITICAL))
         if critical_count > 0:
             console.print(f"   [red]🚨 {critical_count} critical issues found[/red]")
         else:
