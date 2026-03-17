@@ -1,7 +1,6 @@
 from pathlib import Path
 import networkx as nx
 from typing import List, Dict, Set, Tuple
-from .static_analyzer import StaticAnalyzer
 
 class DependencyGraph:
     def __init__(self, root_path: Path):
@@ -18,6 +17,8 @@ class DependencyGraph:
 
         # 2. Add edges
         for module_name, file_path in self.file_map.items():
+            # Import here to avoid circular dependency
+            from .static_analyzer import StaticAnalyzer
             analyzer = StaticAnalyzer(file_path)
             stats = analyzer.analyze()
             

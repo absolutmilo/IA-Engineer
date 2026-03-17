@@ -8,9 +8,9 @@ import re
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Set
 from collections import defaultdict
+from pydantic import BaseModel
 
 from .findings_tracker import FindingsTracker, Severity, Category, FindingLocation
-from .dependency_graph import DependencyGraph
 from utils.logger import get_logger
 
 class FileStats(BaseModel):

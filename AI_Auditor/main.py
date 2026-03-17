@@ -159,6 +159,12 @@ def main():
     # ── Enhanced Audit Analysis ────────────────────────────────────────────
     logger.info("Starting enhanced code analysis...")
     console.print("[blue][*] Running Enhanced Code Analysis...[/blue]")
+    
+    # Store results for integration
+    mcp_results = None
+    dependency_results = None
+    enhanced_results = {}
+    
     try:
         enhanced_analyzer = AuditAnalyzer(str(target_path))
         logger.debug("Enhanced audit analyzer initialized")
@@ -212,6 +218,72 @@ def main():
         logger.error(f"Enhanced audit analysis failed: {e}", exc_info=True)
         console.print(f"   [yellow]⚠ Enhanced analysis failed: {e}[/yellow]")
         # Don't raise - continue with main audit
+
+    # ── MCP Structure Validation ─────────────────────────────────────────────
+    logger.info("Starting MCP structure validation...")
+    console.print("[blue][*] Running MCP Structure Validation...[/blue]")
+    try:
+        from core.mcp_structure_validator import MCPStructureValidator
+        mcp_validator = MCPStructureValidator(str(target_path))
+        mcp_results = mcp_validator.validate_structure()
+        logger.info("MCP structure validation completed")
+        
+        score = mcp_results["overall_score"]
+        level = mcp_results["compliance_level"]
+        
+        if score >= 80:
+            console.print(f"   [green]✅ MCP Compliance: {score}% ({level.value})[/green]")
+        elif score >= 60:
+            console.print(f"   [yellow]⚠️ MCP Compliance: {score}% ({level.value})[/yellow]")
+        else:
+            console.print(f"   [red]❌ MCP Compliance: {score}% ({level.value})[/red]")
+            
+        # Export MCP results
+        mcp_output_dir = target_path / "audit_reports" / "mcp_analysis"
+        mcp_output_dir.mkdir(parents=True, exist_ok=True)
+        mcp_validator.export_structure_report(str(mcp_output_dir))
+        logger.info(f"MCP analysis exported to: {mcp_output_dir}")
+        
+    except Exception as e:
+        logger.error(f"MCP structure validation failed: {e}", exc_info=True)
+        console.print(f"   [yellow]⚠ MCP validation failed: {e}[/yellow]")
+
+    # ── Dependency Analysis ─────────────────────────────────────────────────
+    logger.info("Starting dependency analysis...")
+    console.print("[blue][*] Running Dependency Analysis...[/blue]")
+    try:
+        from core.dependency_analyzer import DependencyAnalyzer
+        dep_analyzer = DependencyAnalyzer(str(target_path))
+        dep_analysis_results = dep_analyzer.analyze_imports_and_usage()
+        dependency_results = dep_analyzer.generate_dependency_report()
+        logger.info("Dependency analysis completed")
+        
+        # Show summary
+        summary = dependency_results['summary']
+        total_dep_issues = sum(len(findings) for findings in dep_analysis_results.values())
+        
+        console.print(f"   [cyan]📦 Analyzed {summary['total_files_analyzed']} files[/cyan]")
+        console.print(f"   [cyan]📦 Found {summary['external_libraries']} external libraries[/cyan]")
+        
+        if total_dep_issues > 0:
+            console.print(f"   [yellow]⚠️ {total_dep_issues} dependency issues found[/yellow]")
+        else:
+            console.print("   [green]✅ No dependency issues found[/green]")
+            
+        # Export dependency results
+        dep_output_dir = target_path / "audit_reports" / "dependency_analysis"
+        dep_output_dir.mkdir(parents=True, exist_ok=True)
+        
+        import json
+        with open(dep_output_dir / "dependency_findings.json", 'w') as f:
+            json.dump(dep_analysis_results, f, indent=2)
+        with open(dep_output_dir / "dependency_report.json", 'w') as f:
+            json.dump(dependency_results, f, indent=2)
+        logger.info(f"Dependency analysis exported to: {dep_output_dir}")
+        
+    except Exception as e:
+        logger.error(f"Dependency analysis failed: {e}", exc_info=True)
+        console.print(f"   [yellow]⚠ Dependency analysis failed: {e}[/yellow]")
 
 
     # ── Dependency Graph ───────────────────────────────────────────────────
@@ -336,7 +408,7 @@ def main():
         json_path = reporter.save_json(report, f"audit_{safe_name}.json")
         logger.info(f"JSON report saved: {json_path}")
         
-        md_path = reporter.save_markdown(report, f"audit_{safe_name}.md", context_summary)
+        md_path = reporter.save_markdown(report, f"audit_{safe_name}.md", context_summary, mcp_results, dependency_results)
         logger.info(f"Markdown report saved: {md_path}")
 
         console.print(f"\n[bold green]✅ Audit Complete![/bold green]")

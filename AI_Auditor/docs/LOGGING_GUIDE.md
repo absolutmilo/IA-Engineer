@@ -1,64 +1,122 @@
-# Logging Guide - AI Auditor
+# Logging Guide - AI Engineering Guardian
 
 ## 📋 Logging Overview
 
-El sistema de **AI Auditor** ahora tiene logging completo y estructurado que permite ver exactamente dónde se cuelga la aplicación, qué prompts se envían al modelo, y todo el flujo de ejecución.
+The **AI Engineering Guardian** features comprehensive structured logging that provides complete visibility into the audit process, LLM interactions, and system performance. All logs are saved in both human-readable and machine-parseable formats.
 
 ## 📁 Log Files Location
 
-Los archivos de log se guardan en la carpeta `logs/` con dos formatos:
+Log files are automatically created in the `logs/` directory with timestamped names:
 
 - **Plain Text Log**: `logs/audit_YYYYMMDD_HHMMSS.log`
-  - Formato legible para humanos
-  - Incluye timestamps, niveles, función y línea
-  - Información de threads
+  - Human-readable format with timestamps and structured information
+  - Includes thread information, function context, and line numbers
+  - Optimized for console viewing and quick debugging
 
 - **JSON Log**: `logs/audit_YYYYMMDD_HHMMSS.jsonl`
-  - Una línea JSON por evento
-  - Fácil de parsear y analizar
-  - Incluye contexto completo (thread, función, línea, excepción)
+  - One JSON object per line for easy parsing
+  - Complete context including thread, function, line, and exception details
+  - Ideal for automated analysis and log aggregation systems
 
 ## 🔍 How to View Logs
 
-### Opción 1: Ver logs en tiempo real (Plain Text)
+### Option 1: Real-time Monitoring (Plain Text)
 ```bash
-# En PowerShell
+# PowerShell (recommended)
 Get-Content -Path logs/audit_*.log -Wait
 
-# O usar tail si tienes WSL
+# Linux/macOS with tail
 tail -f logs/audit_*.log
+
+# Filter for specific patterns
+Get-Content logs/audit_*.log | Select-String "ERROR|TIMEOUT"
 ```
 
-### Opción 2: Ver logs completos
+### Option 2: Historical Analysis
 ```bash
-# Ver el log más reciente
-Get-Content -Path logs/audit_*.log -Tail 100  # Últimas 100 líneas
+# View most recent log entries
+Get-Content -Path logs/audit_*.log -Tail 100
 
-# O en PowerShell ISE - abrir el archivo directamente
+# Open log file directly in editor
 code logs/audit_*.log
+
+# Search for specific events
+Select-String -Path logs/audit_*.log -Pattern "SECTION.*TIMEOUT"
 ```
 
-### Opción 3: Análisis JSON (jq o Python)
+### Option 3: JSON Log Analysis
 ```bash
-# Con Python para ver eventos de timeout
-Get-Content logs/audit_*.jsonl | ConvertFrom-Json | Where-Object {$_.message -like "*TIMEOUT*"}
+# Using jq for JSON analysis
+Get-Content logs/audit_*.jsonl | ConvertFrom-Json | Where-Object { $_.level -eq "ERROR" }
+
+# Python for complex filtering
+python -c "
+import json
+with open('logs/audit_*.jsonl') as f:
+    for line in f:
+        event = json.loads(line)
+        if 'TIMEOUT' in event.get('message', ''):
+            print(f'{event[\"timestamp\"]}: {event[\"message\"]}')
+"
 ```
 
 ## 📊 Log Levels
 
-- `DEBUG`: Información detallada para debugging
-- `INFO`: Eventos importantes (inicio secciones, tiempos, etc)
-- `WARNING`: Advertencias (fallbacks, timeouts)
-- `ERROR`: Errores (excepciones, fallos)
+- **DEBUG**: Detailed information for troubleshooting and development
+  - Function entry/exit points
+  - Variable values and state changes
+  - Detailed error traces
 
-## 🔎 What to Look For
+- **INFO**: Important events and milestones
+  - Section start/completion
+  - Performance metrics and timing
+  - Configuration and initialization
 
-### 1. **Detectar Bloqueos**
-Busca en el log:
+- **WARNING**: Non-critical issues and fallbacks
+  - Timeouts and retries
+  - Fallback mechanisms
+  - Performance concerns
+
+- **ERROR**: Critical failures and exceptions
+  - Analysis failures
+  - LLM connection issues
+  - System errors
+
+## 🎯 Key Log Patterns
+
+### 1. **Detecting Timeouts and Blockages**
 ```
-[SECTION] Starting: <section_key>
-[SECTION] Waiting for result (timeout: 30s)...
-[SECTION] '<section_key>' TIMEOUT after 30s
+[SECTION] Starting: <section_name>
+[SECTION] Waiting for result (timeout: 120s)...
+[SECTION] '<section_name>' TIMEOUT after 120s
+[SECTION] Using fallback response for section
+```
+
+### 2. **LLM Interaction Tracking**
+```
+[SECTION] Prompt for '<section_name>':
+  Prompt length: XXXX characters
+  First 300 chars: <prompt_preview>...
+[WORKER] Called ollama.chat() with retry...
+[WORKER] SUCCESS '<section_name>': Got response (XXXX chars) in X.Xs
+```
+
+### 3. **Performance Monitoring**
+```
+[worker] Section 'architecture' completed in 2.3s (response: 512 bytes)
+AUDIT ANALYSIS COMPLETE in 15.2s
+Final Grade: B | Enterprise Readiness: 65%
+```
+
+### 4. **Error Handling and Recovery**
+```
+[SECTION] '<section_name>' TIMEOUT after 120s
+[SECTION] Worker thread still running; will be terminated as daemon
+[SECTION] Using fallback response for section
+[Parsing section '<section_name>'...]
+  Verdict: <verdict>
+  Findings: <count>
+  Recommendations: <count>
 ```
 
 ### 2. **Ver Prompts Enviados al Modelo**

@@ -2,25 +2,48 @@
 
 ## 📋 Overview
 
-The Enhanced Audit System is a sophisticated code analysis tool that systematically identifies technical debt and engineering issues with precise file/line tracking. Unlike basic linters, it focuses on **deployment blockers** and **production readiness** issues.
+The Enhanced Audit System is part of the **AI Engineering Guardian** - a comprehensive auditing platform that combines static analysis, dependency auditing, MCP structure validation, and LLM-powered insights. Unlike basic linters, it focuses on **deployment blockers** and **production readiness** issues with precise file/line tracking.
 
 ## 🚀 Quick Start
 
-### Basic Usage
+### Option 1: GUI Interface (Recommended)
 ```bash
-# Audit your project
-python enhanced_audit.py "C:\path\to\your\project" --output findings
+# Launch the integrated GUI dashboard
+python run_auditor.py --gui
+```
+
+### Option 2: CLI Interface
+```bash
+# Audit your project with all analysis types
+python run_auditor.py --cli "C:\path\to\your\project"
 
 # With debug logging
-python enhanced_audit.py "C:\path\to\your\project" --output findings --debug
+python run_auditor.py --cli "C:\path\to\your\project" --debug
+```
+
+### Option 3: Direct CLI (Advanced)
+```bash
+# Use main CLI directly
+python main.py "C:\path\to\your\project" --debug
 ```
 
 ### Output Structure
 ```
-findings/
-├── findings.json     # Detailed findings with file/line context
-├── roadmap.json      # Prioritized implementation plan
-└── summary.json      # Statistics and overview
+audit_reports/
+├── audit_project_name.json          # Complete integrated audit data
+├── audit_project_name.md           # Human-readable unified report
+├── enhanced_findings/              # Static analysis results
+│   ├── findings.json
+│   ├── roadmap.json
+│   └── summary.json
+├── mcp_analysis/                 # MCP validation results
+│   └── mcp_structure_report.json
+├── dependency_analysis/            # Dependency audit results
+│   ├── dependency_findings.json
+│   └── dependency_report.json
+└── logs/                        # Detailed execution logs
+    ├── audit_YYYYMMDD_HHMMSS.log
+    └── audit_YYYYMMDD_HHMMSS.jsonl
 ```
 
 ## 🎯 What It Detects
