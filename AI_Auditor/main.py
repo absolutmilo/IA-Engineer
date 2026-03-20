@@ -275,10 +275,28 @@ def main():
         dep_output_dir.mkdir(parents=True, exist_ok=True)
         
         import json
+        from enum import Enum
+        
+        def safe_serialize(obj):
+            if isinstance(obj, Enum):
+                return obj.value
+            if hasattr(obj, 'to_dict'):
+                return obj.to_dict()
+            if hasattr(obj, '__dict__'):
+                return obj.__dict__
+            return str(obj)
+
+        populated_results = {}
+        for category, ids in dep_analysis_results.items():
+            populated_results[category] = [
+                dep_analyzer.tracker.findings[fid].to_dict()
+                for fid in ids if fid in dep_analyzer.tracker.findings
+            ]
+
         with open(dep_output_dir / "dependency_findings.json", 'w') as f:
-            json.dump(dep_analysis_results, f, indent=2)
+            json.dump(populated_results, f, indent=2, default=safe_serialize)
         with open(dep_output_dir / "dependency_report.json", 'w') as f:
-            json.dump(dependency_results, f, indent=2)
+            json.dump(dependency_results, f, indent=2, default=safe_serialize)
         logger.info(f"Dependency analysis exported to: {dep_output_dir}")
         
     except Exception as e:

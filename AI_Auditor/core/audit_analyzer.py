@@ -394,9 +394,21 @@ class AuditAnalyzer:
             dep_analyzer = DependencyAnalyzer(str(self.project_path))
             results = dep_analyzer.analyze_imports_and_usage()
             
-            # Merge all finding IDs
+            # Merge all finding IDs and import actual findings into our tracker
             for category, ids in results.items():
-                finding_ids.extend(ids)
+                for fid in ids:
+                    if fid in dep_analyzer.tracker.findings:
+                        old_f = dep_analyzer.tracker.findings[fid]
+                        # Re-add to our tracker to centralize all findings
+                        new_id = self.tracker.add_finding(
+                            title=old_f.title, description=old_f.description,
+                            severity=old_f.severity, category=old_f.category,
+                            recommendation=old_f.recommendation, effort_estimate=old_f.effort_estimate,
+                            tags=old_f.tags
+                        )
+                        for loc in old_f.locations:
+                            self.tracker.findings[new_id].locations.append(loc)
+                        finding_ids.append(new_id)
             
             # Generate and save dependency report
             dep_report = dep_analyzer.generate_dependency_report()
