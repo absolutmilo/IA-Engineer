@@ -837,9 +837,14 @@ class MCPStructureValidator:
             ]
         }
         
+        def default_serializer(obj):
+            if isinstance(obj, Enum):
+                return obj.value
+            raise TypeError(f"Type {type(obj)} is not serializable")
+
         output_file = Path(output_path) / "mcp_structure_report.json"
         with open(output_file, 'w') as f:
-            json.dump(report_data, f, indent=2)
+            json.dump(report_data, f, indent=2, default=default_serializer)
         
         print(f"📄 MCP structure report exported to: {output_file}")
     

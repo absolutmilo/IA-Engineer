@@ -91,7 +91,9 @@ class Reporter:
     # ─── Markdown ──────────────────────────────────────────────────────────
 
     def build_markdown(self, report: AuditReport,
-                       context_summary: Dict[str, Any] = None) -> str:
+                       context_summary: Dict[str, Any] = None,
+                       mcp_results: Dict[str, Any] = None,
+                       dependency_results: Dict[str, Any] = None) -> str:
         date_str = datetime.now().strftime("%Y-%m-%d")
         project = report.project_name or "Unknown"
         grade = report.grade or "N/A"
@@ -135,6 +137,15 @@ class Reporter:
                 f"| Has CI/CD | {'✅' if pf.get('has_ci_config') else '❌'} |",
                 f"| LLM Libraries | {', '.join(ai.get('llm_libraries', [])) or 'None'} |",
                 f"| RAG Libraries | {', '.join(ai.get('rag_libraries', [])) or 'None'} |",
+            ]
+
+            if mcp_results:
+                md.append(f"| MCP Compliance Score | {mcp_results.get('overall_score', 'N/A')}% |")
+            if dependency_results:
+                summary = dependency_results.get('summary', {})
+                md.append(f"| External Dependencies | {summary.get('external_libraries', 'N/A')} |")
+
+            md += [
                 "",
                 "---",
                 "",
@@ -177,8 +188,10 @@ class Reporter:
     # ─── Savers ────────────────────────────────────────────────────────────
 
     def save_markdown(self, report: AuditReport, filename: str,
-                      context_summary: Dict[str, Any] = None) -> Path:
-        content = self.build_markdown(report, context_summary)
+                      context_summary: Dict[str, Any] = None,
+                      mcp_results: Dict[str, Any] = None,
+                      dependency_results: Dict[str, Any] = None) -> Path:
+        content = self.build_markdown(report, context_summary, mcp_results, dependency_results)
         out = self.output_dir / filename
         out.write_text(content, encoding="utf-8")
         return out
