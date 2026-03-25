@@ -238,7 +238,7 @@ class LLMFactory:
 3. Set up basic .env file structure
 
 ### This Week:
-1. Fix all hardcoded paths in main.py
+1. Fix all hardcoded paths in scripts/standalone/main.py
 2. Implement LLM abstraction layer
 3. Replace print statements with logging
 

@@ -877,7 +877,7 @@ if __name__ == "__main__":
 ### **Integrated Analysis**
 ```bash
 # Run with enhanced audit (includes MCP structure)
-python main.py "path/to/project" --debug
+python scripts/standalone/main.py "path/to/project" --debug
 ```
 
 ### **Standalone Analysis**
