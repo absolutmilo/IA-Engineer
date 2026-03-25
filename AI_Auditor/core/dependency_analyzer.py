@@ -26,6 +26,7 @@ class DependencyAnalyzer:
         self.defined_classes: Dict[str, Set[str]] = {}
         self.used_functions: Dict[str, Set[str]] = {}
         self.used_classes: Dict[str, Set[str]] = {}
+        self.used_modules: Dict[str, Set[str]] = {}
         self.external_imports: Set[str] = set()
         self.internal_imports: Set[str] = set()
         
@@ -173,50 +174,210 @@ class DependencyAnalyzer:
             tree = ast.parse(content)
             file_key = str(file_path.relative_to(self.project_path))
             
-            # Track usage
+            # Track usage with comprehensive analysis
             used_functions = set()
             used_classes = set()
+            used_modules = set()
+            used_attributes = set()
             
             for node in ast.walk(tree):
-                # Function calls
+                # 1. Function calls - improved detection
                 if isinstance(node, ast.Call):
                     if isinstance(node.func, ast.Name):
+                        # Direct function call: func()
                         used_functions.add(node.func.id)
+                        used_modules.add(node.func.id)
                     elif isinstance(node.func, ast.Attribute):
-                        # Handle method calls and attribute access
+                        # Method calls: obj.method() or module.function()
                         if isinstance(node.func.value, ast.Name):
+                            # module.function()
+                            used_functions.add(node.func.attr)
+                            used_modules.add(node.func.value.id)
+                        elif isinstance(node.func.value, ast.Attribute):
+                            # obj.method() - track method
                             used_functions.add(node.func.attr)
                 
-                # Class instantiation and type annotation
+                # 2. Name usage - comprehensive detection
                 elif isinstance(node, ast.Name):
-                    # This is a simplified check - could be improved
+                    # Variable references, function parameters, etc.
+                    used_functions.add(node.id)
+                    
+                    # Check if this is a class reference
                     if node.id in self.defined_classes.get(file_key, set()):
                         used_classes.add(node.id)
+                
+                # 3. Attribute access
+                elif isinstance(node, ast.Attribute):
+                    used_attributes.add(node.attr)
+                    if isinstance(node.value, ast.Name):
+                        used_modules.add(node.value.id)
+                
+                # 4. Class inheritance
+                elif isinstance(node, ast.ClassDef):
+                    # Base classes
+                    for base in node.bases:
+                        if isinstance(base, ast.Name):
+                            used_classes.add(base.id)
+                            used_modules.add(base.id)
+                        elif isinstance(base, ast.Attribute):
+                            if isinstance(base.value, ast.Name):
+                                used_modules.add(base.value.id)
+                    
+                    # Decorators
+                    for decorator in node.decorator_list:
+                        if isinstance(decorator, ast.Name):
+                            used_functions.add(decorator.id)
+                            used_modules.add(decorator.id)
+                        elif isinstance(decorator, ast.Attribute):
+                            if isinstance(decorator.value, ast.Name):
+                                used_modules.add(decorator.value.id)
+                                used_functions.add(decorator.attr)
+                
+                # 5. Function definitions - decorators
+                elif isinstance(node, ast.FunctionDef):
+                    # Decorators
+                    for decorator in node.decorator_list:
+                        if isinstance(decorator, ast.Name):
+                            used_functions.add(decorator.id)
+                            used_modules.add(decorator.id)
+                        elif isinstance(decorator, ast.Attribute):
+                            if isinstance(decorator.value, ast.Name):
+                                used_modules.add(decorator.value.id)
+                                used_functions.add(decorator.attr)
+                    
+                    # Return type annotations
+                    if node.returns:
+                        self._extract_type_usage(node.returns, used_classes, used_modules)
+                    
+                    # Parameter type annotations
+                    for arg in node.args.args:
+                        if arg.annotation:
+                            self._extract_type_usage(arg.annotation, used_classes, used_modules)
+                
+                # 6. Variable annotations (Python 3.6+)
+                elif isinstance(node, ast.AnnAssign):
+                    if node.annotation:
+                        self._extract_type_usage(node.annotation, used_classes, used_modules)
+                
+                # 7. Import statements - track dynamic imports
+                elif isinstance(node, ast.Import):
+                    for alias in node.names:
+                        used_modules.add(alias.name.split('.')[0])
+                elif isinstance(node, ast.ImportFrom):
+                    if node.module:
+                        used_modules.add(node.module.split('.')[0])
+                
+                # 8. String literals that might contain module references
+                elif isinstance(node, ast.Str):  # Python < 3.8
+                    self._extract_string_references(node.s, used_modules)
+                elif isinstance(node, ast.Constant) and isinstance(node.value, str):  # Python 3.8+
+                    self._extract_string_references(node.value, used_modules)
             
             self.used_functions[file_key] = used_functions
             self.used_classes[file_key] = used_classes
+            self.used_modules[file_key] = used_modules
             
         except Exception as e:
             print(f"Error analyzing usage in {file_path}: {e}")
     
+    def _extract_type_usage(self, type_node, used_classes, used_modules):
+        """Extract usage from type annotation nodes"""
+        if isinstance(type_node, ast.Name):
+            used_classes.add(type_node.id)
+            used_modules.add(type_node.id)
+        elif isinstance(type_node, ast.Attribute):
+            if isinstance(type_node.value, ast.Name):
+                used_modules.add(type_node.value.id)
+                used_classes.add(type_node.attr)
+        elif isinstance(type_node, ast.Subscript):
+            # Generic types: List[str], Dict[str, int]
+            if isinstance(type_node.value, ast.Name):
+                used_classes.add(type_node.value.id)
+                used_modules.add(type_node.value.id)
+            # Handle type parameters
+            if type_node.slice:
+                if isinstance(type_node.slice, ast.Tuple):
+                    for slice_node in type_node.slice.elts:
+                        self._extract_type_usage(slice_node, used_classes, used_modules)
+                else:
+                    self._extract_type_usage(type_node.slice, used_classes, used_modules)
+    
+    def _extract_string_references(self, string_value, used_modules):
+        """Extract potential module references from string literals"""
+        # Look for patterns like "module.submodule" or "module.Class"
+        import re
+        # Pattern: word.word (module.submodule or module.Class)
+        pattern = r'\b([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*)\b'
+        matches = re.findall(pattern, string_value)
+        for match in matches:
+            module_name = match.split('.')[0]
+            used_modules.add(module_name)
+    
     def _find_unused_imports(self) -> Dict[str, Set[str]]:
-        """Find imports that are never used"""
+        """Find imports that are never used - improved analysis"""
         unused = defaultdict(set)
         
         for file_path, imports in self.imports_by_file.items():
-            # Get all used names in this file
+            # Get all used names in this file - comprehensive
             used_names = set()
             used_names.update(self.used_functions.get(file_path, set()))
             used_names.update(self.used_classes.get(file_path, set()))
+            used_names.update(self.used_modules.get(file_path, set()))
             
-            # Check each import
+            # Check each import with sophisticated matching
             for import_name in imports:
-                # Simple check - could be improved for more complex cases
-                import_base = import_name.split('.')[0]
-                if import_base not in used_names and import_name not in used_names:
-                    unused[file_path].add(import_name)
+                # Handle different import patterns
+                import_parts = import_name.split('.')
+                import_base = import_parts[0]
+                
+                # 1. Direct match
+                if import_name in used_names:
+                    continue
+                
+                # 2. Base module match (for "from module import item")
+                if import_base in used_names:
+                    continue
+                
+                # 3. Partial match for submodules
+                for used_name in used_names:
+                    if used_name.startswith(import_name + '.'):
+                        continue
+                    if import_name.startswith(used_name + '.'):
+                        continue
+                
+                # 4. Check if any part is used
+                if any(part in used_names for part in import_parts[1:]):
+                    continue
+                
+                # 5. Special cases for common patterns
+                if self._is_specially_used(import_name, used_names):
+                    continue
+                
+                # If we get here, it's likely unused
+                unused[file_path].add(import_name)
         
         return unused
+    
+    def _is_specially_used(self, import_name: str, used_names: set) -> bool:
+        """Check for special usage patterns that might be missed"""
+        # Common utility modules that might be used in ways hard to detect
+        special_patterns = {
+            'typing': {'List', 'Dict', 'Set', 'Tuple', 'Optional', 'Union', 'Any', 'Callable'},
+            'pathlib': {'Path'},
+            'sys': {'exit', 'argv', 'path'},
+            'os': {'path', 'environ'},
+            'json': {'load', 'dump', 'loads', 'dumps'},
+            're': {'match', 'search', 'findall', 'sub', 'compile'},
+            'datetime': {'datetime', 'date', 'time', 'timedelta'},
+            'collections': {'defaultdict', 'Counter', 'namedtuple'},
+        }
+        
+        # Check if it's a commonly used module
+        for module, common_items in special_patterns.items():
+            if import_name == module or import_name.startswith(module + '.'):
+                return any(item in used_names for item in common_items)
+        
+        return False
     
     def _find_decomposable_libraries(self) -> List[Dict]:
         """Find libraries that import many things but use few"""

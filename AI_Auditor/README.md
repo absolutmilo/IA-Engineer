@@ -45,7 +45,7 @@ python run_auditor.py --cli /path/to/your/project --debug
 ### Option 3: Direct CLI (Advanced)
 ```bash
 # Use main CLI directly
-python main.py /path/to/project --debug
+python scripts/standalone/main.py /path/to/project --debug
 ```
 
 ---
@@ -261,8 +261,12 @@ AI Engineering Guardian/
 │   ├── reporter.py                 # Report generation
 │   └── logger.py                 # Logging system
 ├── integrated_auditor_gui.py       # GUI interface
-├── main.py                       # CLI interface
-└── run_auditor.py               # Unified launcher
+├── run_auditor.py               # Unified launcher
+└── scripts/standalone/            # Specialized analysis tools
+│   ├── main.py                   # Complete integrated audit
+│   ├── enhanced_audit.py           # Static code analysis
+│   ├── dependency_audit.py         # Dependency analysis
+│   └── mcp_structure_audit.py     # MCP structure validation
 ```
 
 ### Data Flow

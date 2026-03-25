@@ -15,6 +15,7 @@ import queue
 import time
 
 # Core imports
+from core.findings_tracker import Severity, Category
 from core.audit_analyzer import AuditAnalyzer
 from core.dependency_analyzer import DependencyAnalyzer
 from core.mcp_structure_validator import MCPStructureValidator
@@ -447,7 +448,7 @@ class IntegratedAuditorGUI:
                 self.code_text.insert(tk.END, f"  • {category}: {count}\n")
                 
         # Critical findings
-        critical_count = len(tracker.get_by_severity(tracker.Severity.CRITICAL))
+        critical_count = len(tracker.get_by_severity(Severity.CRITICAL))
         if critical_count > 0:
             self.code_text.insert(tk.END, f"\n🚨 Critical Issues: {critical_count}\n")
             
@@ -614,7 +615,7 @@ class IntegratedAuditorGUI:
             static_data = self.analysis_results['static']
             enhanced_results = static_data['enhanced_results']
             total_findings = sum(len(findings) for findings in enhanced_results.values())
-            critical_count = len(static_data['tracker'].get_by_severity(static_data['tracker'].Severity.CRITICAL))
+            critical_count = len(static_data['tracker'].get_by_severity(Severity.CRITICAL))
             
             self.overview_text.insert(tk.END, f"Code Issues Found: {total_findings}\n")
             self.overview_text.insert(tk.END, f"Critical Issues: {critical_count}\n")
@@ -708,7 +709,7 @@ class IntegratedAuditorGUI:
         # Critical code issues
         if 'static' in self.analysis_results:
             static_data = self.analysis_results['static']
-            critical_count = len(static_data['tracker'].get_by_severity(static_data['tracker'].Severity.CRITICAL))
+            critical_count = len(static_data['tracker'].get_by_severity(Severity.CRITICAL))
             if critical_count > 0:
                 recommendations.append(f"Address {critical_count} critical code issues immediately")
                 
