@@ -73,4 +73,4 @@ if (-not $TargetDir) {
 
 # 6. Launch
 Write-Color "[*] Launching Principal Architect Audit on: $TargetDir" Cyan
-& $PythonKey "$PSScriptRoot\main.py" "$TargetDir"
+& $PythonKey "$PSScriptRoot\scripts\standalone\main.py" "$TargetDir"
