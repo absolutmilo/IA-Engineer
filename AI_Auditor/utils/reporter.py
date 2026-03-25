@@ -228,6 +228,15 @@ class Reporter:
                 f"| Has CI/CD | {'✅' if pf.get('has_ci_config') else '❌'} |",
                 f"| LLM Libraries | {', '.join(ai.get('llm_libraries', [])) or 'None'} |",
                 f"| RAG Libraries | {', '.join(ai.get('rag_libraries', [])) or 'None'} |",
+            ]
+
+            if mcp_results:
+                md.append(f"| MCP Compliance Score | {mcp_results.get('overall_score', 'N/A')}% |")
+            if dependency_results:
+                summary = dependency_results.get('summary', {})
+                md.append(f"| External Dependencies | {summary.get('external_libraries', 'N/A')} |")
+
+            md += [
                 "",
                 "---",
                 "",
