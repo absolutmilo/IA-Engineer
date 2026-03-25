@@ -5,7 +5,7 @@ Ensures projects follow recommended folder organization for MCP tools
 
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 
@@ -17,6 +17,12 @@ class StructureComplianceLevel(Enum):
     COMPLIANT = "COMPLIANT"
     PARTIAL = "PARTIAL"
     NON_COMPLIANT = "NON_COMPLIANT"
+    
+    def __str__(self):
+        return self.value
+    
+    def __repr__(self):
+        return self.value
 
 
 @dataclass

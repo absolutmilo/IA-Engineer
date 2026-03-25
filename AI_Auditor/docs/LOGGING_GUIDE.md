@@ -153,7 +153,7 @@ Final Grade: D+ | Enterprise Readiness: 35%
 
 Para más detalles, ejecuta con `--debug`:
 ```bash
-python main.py <project_path> --debug
+python scripts/standalone/main.py <project_path> --debug
 ```
 
 Esto activa:

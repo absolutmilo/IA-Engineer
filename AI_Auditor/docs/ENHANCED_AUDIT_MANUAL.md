@@ -24,7 +24,7 @@ python run_auditor.py --cli "C:\path\to\your\project" --debug
 ### Option 3: Direct CLI (Advanced)
 ```bash
 # Use main CLI directly
-python main.py "C:\path\to\your\project" --debug
+python scripts/standalone/main.py "C:\path\to\your\project" --debug
 ```
 
 ### Output Structure
@@ -71,7 +71,7 @@ audit_reports/
   "description": "Hardcoded path 'config/audit_config.yaml' prevents deployment",
   "locations": [
     {
-      "file_path": "main.py",
+      "file_path": "scripts/standalone/main.py",
       "line_number": 24,
       "code_snippet": "def load_config(path: str = \"config/audit_config.yaml\")"
     }
@@ -153,7 +153,7 @@ response = await provider.chat(messages)
       "category": "configuration",   // Issue category
       "locations": [               // All occurrences
         {
-          "file_path": "main.py",   // Relative file path
+          "file_path": "scripts/standalone/main.py",   // Relative file path
           "line_number": 24,        // Exact line number
           "function_name": null,     // Function context (if available)
           "code_snippet": "code"    // The problematic line
